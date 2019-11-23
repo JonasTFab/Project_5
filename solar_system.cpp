@@ -18,6 +18,11 @@ void planet(double x_init, double y_init, double vx_init, double vy_init){
   int len = 100;
 
   arma::Col <double> t = arma::vec(len);
+  double tmin = 0;
+  double tmax = 10;
+  for (int i=0,i<len, i++){
+    t(i)=i*dt;
+  }
   arma::Col <double> x = arma::vec(len); x(0)=x_init;
   arma::Col <double> y = arma::vec(len); y(0)=y_init;
   arma::Col <double> vx = arma::vec(len); vx(0)=vx_init;
@@ -37,8 +42,6 @@ void planet(double x_init, double y_init, double vx_init, double vy_init){
     y(i) = y(i-1) + vy(i)*t(i) * 0.5*ay*t(i)*t(i);
 
 
-
-    v(i)
   }
 
 } // end of function planet()
