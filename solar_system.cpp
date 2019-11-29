@@ -1,5 +1,10 @@
 #include <iostream>
+#include <fstream>
+#include <iomanip>
 #include <armadillo>
+#include <cstdlib>
+#include <sstream>
+#include <string>
 //#include "mpi.h"
 
 //For debugging:
@@ -10,39 +15,53 @@
 //mpicxx  -o main_mpi.x  main.cpp -std=c++11
 //mpiexec -n 2 ./main_mpi.x
 
+std::ofstream ofile;
 double pi = 3.14159265359;
 
 
-void planet(double x_init, double y_init, double vx_init, double vy_init){
+void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &vx,
+            arma::Col <double> &vy){
   double a,r,ax,ay;
-  int len = 100;
+  double GM = 4*pi*pi;
 
-  arma::Col <double> t = arma::vec(len);
+  int n = x.n_elem;
+
+  arma::Col <double> t = arma::vec(n);
   double tmin = 0;
   double tmax = 10;
-  for (int i=0,i<len, i++){
+  double dt = (tmax-tmin)/n;
+  for (int i=0; i<n; i++){
     t(i)=i*dt;
   }
-  arma::Col <double> x = arma::vec(len); x(0)=x_init;
-  arma::Col <double> y = arma::vec(len); y(0)=y_init;
-  arma::Col <double> vx = arma::vec(len); vx(0)=vx_init;
-  arma::Col <double> vy = arma::vec(len); vy(0)=vy_init;
 
-  for (int i=1; i<len; i++){
-    r = sqrt(x(i-1)*x(i-1)+y(i-1)*y(i-1));
-    a = 4*pi*pi/(r*r);
 
-    ax = a*x(i-1);
-    ay = a*y(i-1);
+  for (int i=1; i<n; i++){
+    r = sqrt(x(i-1)*x(i-1) + y(i-1)*y(i-1));
+    a = GM / (r*r);
 
-    vx(i) = vx(i-1) + ax*t(i);
-    vy(i) = vy(i-1) + ay*t(i);
+    ax = -a*x(i-1);
+    ay = -a*y(i-1);
 
-    x(i) = x(i-1) + vx(i)*t(i) * 0.5*ax*t(i)*t(i);
-    y(i) = y(i-1) + vy(i)*t(i) * 0.5*ay*t(i)*t(i);
 
+    vx(i) = vx(i-1) + ax*dt;
+    vy(i) = vy(i-1) + ay*dt;
+
+    x(i) = x(i-1) + vx(i-1)*dt;
+    y(i) = y(i-1) + vy(i-1)*dt;
 
   }
+
+  std::string fileout = "Orbit.txt";
+  ofile.open(fileout);
+  ofile << std::setiosflags(std::ios::showpoint | std::ios::uppercase);
+  for (int i=0; i<n; i++){
+    ofile << std::setw(15) << x(i);
+    ofile << std::setw(15) << y(i) << "\n";
+  }
+  //ofile << std::setw(15) << y << "\n";
+  ofile.close();
+
+
 
 } // end of function planet()
 
@@ -50,10 +69,14 @@ void planet(double x_init, double y_init, double vx_init, double vy_init){
 
 
 int main(){
-  double x0,y0,vx0,vy0;
-  x0,y0,vx0,vy0 = 1,0,0,1;
+  int len = 1000;
 
-  planet(x0,y0,vx0,vy0);
+  arma::Col <double> x = arma::vec(len); x(0)=1;
+  arma::Col <double> y = arma::vec(len); y(0)=0;
+  arma::Col <double> vx = arma::vec(len); vx(0)=0;
+  arma::Col <double> vy = arma::vec(len); vy(0)=1;
+
+  planet(x,y,vx,vy);
 
 
 
